@@ -1,0 +1,4 @@
+repository "driftwordMain/driftwordMain@2475830452978@cloud"
+  path "/"
+    br "/main"
+    co "/main"
