@@ -1,16 +1,18 @@
 using UnityEngine;
 using TMPro;
+using UnityEngine.UI;
 using System.Collections.Generic;
 
 public class KeyboardInput : MonoBehaviour
 {
-    public TMP_Text guessInputField; // The "GUESS..." input box
-    public List<TextMeshProUGUI> letterSlots; // The top feedback tile row
-    public GuessListManager guessListManager; // The scrollable list on the right
+    public TMP_Text guessInputField;
+    public List<TextMeshProUGUI> letterSlots;
+    public CloserWordsListManager guessListManager;
+    public KeyboardController keyboardController;
 
     private string currentGuess = "";
+    private string targetWord = "CRANE";
 
-    // Called when a letter key is pressed
     public void OnLetterButtonClick(string letter)
     {
         if (currentGuess.Length < 5)
@@ -20,7 +22,6 @@ public class KeyboardInput : MonoBehaviour
         }
     }
 
-    // Called when backspace is pressed
     public void OnBackspace()
     {
         if (currentGuess.Length > 0)
@@ -30,36 +31,76 @@ public class KeyboardInput : MonoBehaviour
         }
     }
 
-    // Called when submit is pressed
     public void OnSubmit()
     {
+        if (currentGuess.Length != 5)
+        {
+            Debug.Log("Guess must be 5 letters.");
+            return;
+        }
+
         Debug.Log("Submitted Guess: " + currentGuess);
 
-        // Show guess in the top tile row
+        List<int> feedback = new List<int>();
+        bool[] matchedInTarget = new bool[5];
+
+        for (int i = 0; i < 5; i++)
+        {
+            if (currentGuess[i] == targetWord[i])
+            {
+                feedback.Add(2);
+                matchedInTarget[i] = true;
+            }
+            else
+            {
+                feedback.Add(0);
+            }
+        }
+
+        for (int i = 0; i < 5; i++)
+        {
+            if (feedback[i] == 0)
+            {
+                for (int j = 0; j < 5; j++)
+                {
+                    if (!matchedInTarget[j] && currentGuess[i] == targetWord[j])
+                    {
+                        feedback[i] = 1;
+                        matchedInTarget[j] = true;
+                        break;
+                    }
+                }
+            }
+        }
+
         for (int i = 0; i < letterSlots.Count; i++)
         {
-            if (i < currentGuess.Length)
+            if (feedback[i] == 2)
+            {
                 letterSlots[i].text = currentGuess[i].ToString();
-            else
-                letterSlots[i].text = "";
+
+                Image tileImage = letterSlots[i].transform.parent.GetComponent<Image>();
+                if (tileImage != null && guessListManager != null)
+                {
+                    tileImage.color = guessListManager.correctPositionColor;
+                }
+            }
         }
 
-        // TEMP: Generate mock Wordle-style color feedback (cycling)
-        List<string> feedback = new List<string>();
-        for (int i = 0; i < currentGuess.Length; i++)
-        {
-            if (i % 3 == 0) feedback.Add("darkblue");
-            else if (i % 3 == 1) feedback.Add("lightblue");
-            else feedback.Add("gray");
-        }
-
-        // Add to the scrollable list on the right
         if (guessListManager != null)
         {
             guessListManager.AddGuess(currentGuess, feedback);
         }
 
-        // Clear for next input
+        // 🔑 Update keyboard key colors
+        if (keyboardController != null)
+        {
+            for (int i = 0; i < currentGuess.Length; i++)
+            {
+                keyboardController.UpdateKeyColor(currentGuess[i], feedback[i]);
+            }
+        }
+
         currentGuess = "";
         guessInputField.text = "";
     }
@@ -67,6 +108,5 @@ public class KeyboardInput : MonoBehaviour
     public void OnHint()
     {
         Debug.Log("Hint requested.");
-        // Placeholder for future hint logic
     }
 }
