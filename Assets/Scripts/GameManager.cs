@@ -4,23 +4,37 @@ using UnityEngine;
 public class GameManager : MonoBehaviour
 {
     public CloserWordsListManager closerWordsListManager;
-
+    
     private string hiddenWord = "CRANE"; // Example hidden word — replace with your actual logic
 
     public void SubmitGuess(string playerGuess)
     {
-        List<int> feedback = GenerateFeedback(playerGuess.ToUpper(), hiddenWord.ToUpper());
+        playerGuess = playerGuess.Trim().ToUpper();
+
+        if (playerGuess.Length != 5)
+        {
+            Debug.Log("Guess must be 5 letters.");
+            return;
+        }
+
+        if (!WordListManager.Instance.IsValidWord(playerGuess))
+        {
+            Debug.Log("Not a real word.");
+            return;
+        }
+
+        List<int> feedback = GenerateFeedback(playerGuess, hiddenWord.ToUpper());
 
         // Send the guess and feedback to the Closer Words List
         if (closerWordsListManager != null)
         {
-            closerWordsListManager.AddGuess(playerGuess.ToUpper(), feedback);
+            closerWordsListManager.AddGuess(playerGuess, feedback);
         }
 
         // TODO: Trigger boat movement here based on feedback, if desired
 
         // Check for win
-        if (playerGuess.ToUpper() == hiddenWord.ToUpper())
+        if (playerGuess == hiddenWord.ToUpper())
         {
             Debug.Log("🎉 You guessed it!");
             // TODO: Trigger game victory logic here

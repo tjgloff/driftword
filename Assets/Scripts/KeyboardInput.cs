@@ -1,7 +1,8 @@
 using UnityEngine;
 using TMPro;
-using UnityEngine.UI;
+using System.Collections;
 using System.Collections.Generic;
+using UnityEngine.UI;
 
 public class KeyboardInput : MonoBehaviour
 {
@@ -11,7 +12,9 @@ public class KeyboardInput : MonoBehaviour
     public KeyboardController keyboardController;
 
     private string currentGuess = "";
-    private string targetWord = "CRANE";
+    private string targetWord = "CRANE"; // change this as needed
+
+    private bool[] revealedLetters = new bool[5];
 
     public void OnLetterButtonClick(string letter)
     {
@@ -33,69 +36,57 @@ public class KeyboardInput : MonoBehaviour
 
     public void OnSubmit()
     {
-        if (currentGuess.Length != 5)
-        {
-            Debug.Log("Guess must be 5 letters.");
-            return;
-        }
+        if (currentGuess.Length != 5) return;
 
-        Debug.Log("Submitted Guess: " + currentGuess);
+        List<int> feedback = new List<int> { 0, 0, 0, 0, 0 };
+        char[] targetChars = targetWord.ToCharArray();
+        bool[] matched = new bool[5];
 
-        List<int> feedback = new List<int>();
-        bool[] matchedInTarget = new bool[5];
-
+        // First pass: correct position
         for (int i = 0; i < 5; i++)
         {
             if (currentGuess[i] == targetWord[i])
             {
-                feedback.Add(2);
-                matchedInTarget[i] = true;
-            }
-            else
-            {
-                feedback.Add(0);
+                feedback[i] = 2;
+                matched[i] = true;
+                targetChars[i] = '*';
             }
         }
 
+        // Second pass: correct letter, wrong position
         for (int i = 0; i < 5; i++)
         {
             if (feedback[i] == 0)
             {
                 for (int j = 0; j < 5; j++)
                 {
-                    if (!matchedInTarget[j] && currentGuess[i] == targetWord[j])
+                    if (!matched[j] && currentGuess[i] == targetChars[j])
                     {
                         feedback[i] = 1;
-                        matchedInTarget[j] = true;
+                        matched[j] = true;
                         break;
                     }
                 }
             }
         }
 
+        // Update guess row with flip animation
         for (int i = 0; i < letterSlots.Count; i++)
         {
-            if (feedback[i] == 2)
+            if (feedback[i] == 2 && !revealedLetters[i])
             {
-                letterSlots[i].text = currentGuess[i].ToString();
-
-                Image tileImage = letterSlots[i].transform.parent.GetComponent<Image>();
-                if (tileImage != null && guessListManager != null)
-                {
-                    tileImage.color = guessListManager.correctPositionColor;
-                }
+                revealedLetters[i] = true;
+                StartCoroutine(FlipRevealLetter(i, currentGuess[i].ToString(), guessListManager.correctPositionColor));
             }
         }
 
-        if (guessListManager != null)
-        {
-            guessListManager.AddGuess(currentGuess, feedback);
-        }
+        // Add to scrolling list
+        guessListManager?.AddGuess(currentGuess, feedback);
 
-        // 🔑 Update keyboard key colors
+        // Update keyboard
         if (keyboardController != null)
         {
-            for (int i = 0; i < currentGuess.Length; i++)
+            for (int i = 0; i < 5; i++)
             {
                 keyboardController.UpdateKeyColor(currentGuess[i], feedback[i]);
             }
@@ -107,6 +98,42 @@ public class KeyboardInput : MonoBehaviour
 
     public void OnHint()
     {
-        Debug.Log("Hint requested.");
+        // Placeholder for future hint logic
+    }
+
+    private IEnumerator FlipRevealLetter(int index, string letter, Color color)
+    {
+        Transform tile = letterSlots[index].transform.parent;
+        Image bg = tile.GetComponent<Image>();
+        TextMeshProUGUI text = letterSlots[index];
+
+        float flipTime = 0.2f;
+        float elapsed = 0f;
+
+        Vector3 startScale = tile.localScale;
+        Vector3 midScale = new Vector3(1, 0, 1);
+
+        // Shrink (flip out)
+        while (elapsed < flipTime)
+        {
+            tile.localScale = Vector3.Lerp(startScale, midScale, elapsed / flipTime);
+            elapsed += Time.deltaTime;
+            yield return null;
+        }
+
+        tile.localScale = midScale;
+        text.text = letter;
+        if (bg != null) bg.color = color;
+
+        // Expand (flip in)
+        elapsed = 0f;
+        while (elapsed < flipTime)
+        {
+            tile.localScale = Vector3.Lerp(midScale, startScale, elapsed / flipTime);
+            elapsed += Time.deltaTime;
+            yield return null;
+        }
+
+        tile.localScale = startScale;
     }
 }

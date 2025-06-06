@@ -5,49 +5,46 @@ using TMPro;
 
 public class KeyboardController : MonoBehaviour
 {
-    [System.Serializable]
-    public class KeyButton
+    public Color correctPositionColor;
+    public Color correctLetterColor;
+    public Color incorrectColor;
+
+    private Dictionary<char, Button> keyButtons = new();
+    private Dictionary<char, int> keyStates = new(); // 0: gray, 1: light blue, 2: dark blue
+
+    void Start()
     {
-        public string letter;
-        public Image keyImage;
-        public TextMeshProUGUI keyText;
-        public int currentFeedback = -1; // -1 = untouched, 0 = gray, 1 = light blue, 2 = dark blue
-    }
-
-    public List<KeyButton> keys;
-
-    public Color correctPositionColor;  // dark blue
-    public Color correctLetterColor;    // light blue
-    public Color incorrectColor;        // gray
-
-    public void UpdateKeyColor(char letterChar, int feedback)
-    {
-        string letter = letterChar.ToString().ToUpper();
-
-        foreach (KeyButton key in keys)
+        Button[] buttons = GetComponentsInChildren<Button>();
+        foreach (Button button in buttons)
         {
-            if (key.letter == letter)
-            {
-                // Only upgrade the color if it's a stronger result
-                if (feedback > key.currentFeedback)
-                {
-                    key.currentFeedback = feedback;
+            TextMeshProUGUI tmp = button.GetComponentInChildren<TextMeshProUGUI>();
+            if (tmp == null) continue;
 
-                    switch (feedback)
-                    {
-                        case 2:
-                            key.keyImage.color = correctPositionColor;
-                            break;
-                        case 1:
-                            key.keyImage.color = correctLetterColor;
-                            break;
-                        case 0:
-                            key.keyImage.color = incorrectColor;
-                            break;
-                    }
-                }
-                break;
+            char c = tmp.text.ToUpper()[0];
+            if (char.IsLetter(c) && !keyButtons.ContainsKey(c))
+            {
+                keyButtons[c] = button;
+                keyStates[c] = -1;
             }
         }
+    }
+
+    public void UpdateKeyColor(char letter, int feedback)
+    {
+        char c = char.ToUpper(letter);
+
+        if (!keyButtons.ContainsKey(c)) return;
+
+        if (feedback <= keyStates[c]) return;
+
+        keyStates[c] = feedback;
+        Color color = feedback switch
+        {
+            2 => correctPositionColor,
+            1 => correctLetterColor,
+            _ => incorrectColor
+        };
+
+        keyButtons[c].GetComponent<Image>().color = color;
     }
 }

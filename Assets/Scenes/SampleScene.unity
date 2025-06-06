@@ -8418,6 +8418,50 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1732357288}
   m_CullTransparentMesh: 1
+--- !u!1 &1744226150
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1744226152}
+  - component: {fileID: 1744226151}
+  m_Layer: 0
+  m_Name: WordListManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1744226151
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1744226150}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 743d5bb4d5d07904ca81bc5ec0ead31c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!4 &1744226152
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1744226150}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 330.06012, y: 664.98627, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1749685611
 GameObject:
   m_ObjectHideFlags: 0
@@ -9717,7 +9761,6 @@ GameObject:
   - component: {fileID: 2087826574}
   - component: {fileID: 2087826573}
   - component: {fileID: 2087826572}
-  - component: {fileID: 2087826576}
   - component: {fileID: 2087826575}
   m_Layer: 5
   m_Name: KeyboardPanel
@@ -9811,127 +9854,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 00e4bf9e80bf0914291ba037c847a0aa, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  keys:
-  - letter: Q
-    keyImage: {fileID: 1310294823}
-    keyText: {fileID: 1308633055}
-    currentFeedback: -1
-  - letter: W
-    keyImage: {fileID: 1059509206}
-    keyText: {fileID: 1374507518}
-    currentFeedback: -1
-  - letter: E
-    keyImage: {fileID: 1249467408}
-    keyText: {fileID: 1609946192}
-    currentFeedback: -1
-  - letter: R
-    keyImage: {fileID: 671663538}
-    keyText: {fileID: 236102583}
-    currentFeedback: -1
-  - letter: T
-    keyImage: {fileID: 1418211898}
-    keyText: {fileID: 947519088}
-    currentFeedback: -1
-  - letter: Y
-    keyImage: {fileID: 10797830}
-    keyText: {fileID: 706612186}
-    currentFeedback: -1
-  - letter: U
-    keyImage: {fileID: 44942867}
-    keyText: {fileID: 987775155}
-    currentFeedback: -1
-  - letter: I
-    keyImage: {fileID: 2109404488}
-    keyText: {fileID: 1089277645}
-    currentFeedback: -1
-  - letter: O
-    keyImage: {fileID: 362134540}
-    keyText: {fileID: 1394771942}
-    currentFeedback: -1
-  - letter: P
-    keyImage: {fileID: 723699981}
-    keyText: {fileID: 1653007743}
-    currentFeedback: -1
-  - letter: A
-    keyImage: {fileID: 1470495676}
-    keyText: {fileID: 2097581436}
-    currentFeedback: -1
-  - letter: S
-    keyImage: {fileID: 487598016}
-    keyText: {fileID: 1110274760}
-    currentFeedback: -1
-  - letter: D
-    keyImage: {fileID: 1640593414}
-    keyText: {fileID: 479170364}
-    currentFeedback: -1
-  - letter: F
-    keyImage: {fileID: 249181956}
-    keyText: {fileID: 1921661359}
-    currentFeedback: -1
-  - letter: G
-    keyImage: {fileID: 2113955706}
-    keyText: {fileID: 783785488}
-    currentFeedback: -1
-  - letter: H
-    keyImage: {fileID: 764032196}
-    keyText: {fileID: 1845247823}
-    currentFeedback: -1
-  - letter: J
-    keyImage: {fileID: 624864039}
-    keyText: {fileID: 687171953}
-    currentFeedback: -1
-  - letter: K
-    keyImage: {fileID: 1903568902}
-    keyText: {fileID: 761051862}
-    currentFeedback: -1
-  - letter: L
-    keyImage: {fileID: 1758241111}
-    keyText: {fileID: 1487945033}
-    currentFeedback: -1
-  - letter: Z
-    keyImage: {fileID: 1864892341}
-    keyText: {fileID: 1466482969}
-    currentFeedback: -1
-  - letter: X
-    keyImage: {fileID: 1749685614}
-    keyText: {fileID: 493511228}
-    currentFeedback: -1
-  - letter: C
-    keyImage: {fileID: 1680579470}
-    keyText: {fileID: 2105035955}
-    currentFeedback: -1
-  - letter: V
-    keyImage: {fileID: 723241440}
-    keyText: {fileID: 1628640619}
-    currentFeedback: -1
-  - letter: B
-    keyImage: {fileID: 1218066970}
-    keyText: {fileID: 295237036}
-    currentFeedback: -1
-  - letter: N
-    keyImage: {fileID: 2069246599}
-    keyText: {fileID: 928239229}
-    currentFeedback: -1
-  - letter: M
-    keyImage: {fileID: 124503563}
-    keyText: {fileID: 1732357290}
-    currentFeedback: -1
-  correctPositionColor: {r: 0, g: 0, b: 0, a: 0}
-  correctLetterColor: {r: 0, g: 0, b: 0, a: 0}
-  incorrectColor: {r: 0, g: 0, b: 0, a: 0}
---- !u!114 &2087826576
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2087826570}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b7fdea874ed4c1c41a6595b852ef3c7d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  keyboardController: {fileID: 2087826575}
+  correctPositionColor: {r: 0, g: 0.2509804, b: 0.5019608, a: 1}
+  correctLetterColor: {r: 0.4, g: 0.8, b: 1, a: 1}
+  incorrectColor: {r: 0.8, g: 0.8, b: 0.8, a: 1}
 --- !u!1 &2097581434
 GameObject:
   m_ObjectHideFlags: 0
@@ -10617,3 +10542,4 @@ SceneRoots:
   - {fileID: 1784892813}
   - {fileID: 1656792502}
   - {fileID: 943914435}
+  - {fileID: 1744226152}
