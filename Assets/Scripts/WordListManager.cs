@@ -1,57 +1,68 @@
 using System.Collections.Generic;
 using UnityEngine;
+using System.Linq;
 
 public class WordListManager : MonoBehaviour
 {
-    public static WordListManager Instance;
-
-    private HashSet<string> validWords;
+    public List<string> answerWords { get; private set; } = new List<string>();
+    public HashSet<string> validGuesses { get; private set; } = new HashSet<string>();
 
     void Awake()
     {
-        if (Instance == null)
-        {
-            Instance = this;
-            DontDestroyOnLoad(gameObject);
-            LoadWordLists();
-        }
-        else
-        {
-            Destroy(gameObject);
-        }
+        LoadWordLists();
     }
 
     private void LoadWordLists()
     {
-        validWords = new HashSet<string>();
+        Debug.Log("[WordListManager] Loading word lists...");
 
-        // Load guesses
-        TextAsset guessList = Resources.Load<TextAsset>("wordlist");
-        AddWordsFromTextAsset(guessList);
-
-        // Load valid solutions
-        TextAsset solutionList = Resources.Load<TextAsset>("solutionlist");
-        AddWordsFromTextAsset(solutionList);
-    }
-
-    private void AddWordsFromTextAsset(TextAsset textAsset)
-    {
-        if (textAsset != null)
+        // Load answers
+        TextAsset answersAsset = Resources.Load<TextAsset>("answerlist");
+        if (answersAsset == null)
         {
-            string[] words = textAsset.text.Split(new[] { '\n', '\r' }, System.StringSplitOptions.RemoveEmptyEntries);
-            foreach (string word in words)
-            {
-                validWords.Add(word.Trim().ToLower());
-            }
+            Debug.LogError("Missing file: answerlist.txt in Resources folder.");
         }
         else
         {
-            Debug.LogError("Missing word list file.");
+            answerWords = ProcessTextAsset(answersAsset);
+            Debug.Log($"[WordListManager] Loaded {answerWords.Count} answer words.");
+        }
+
+        // Load guesses
+        TextAsset guessesAsset = Resources.Load<TextAsset>("wordlist");
+        if (guessesAsset == null)
+        {
+            Debug.LogError("Missing file: wordlist.txt in Resources folder.");
+        }
+        else
+        {
+            validGuesses = new HashSet<string>(ProcessTextAsset(guessesAsset));
+            Debug.Log($"[WordListManager] Loaded {validGuesses.Count} valid guess words.");
         }
     }
 
-    public bool IsValidWord(string word)
+    private List<string> ProcessTextAsset(TextAsset textAsset)
     {
-        return validWords.Contains(word.ToLower());
+        return textAsset.text
+            .Split(new[] { '\r', '\n' }, System.StringSplitOptions.RemoveEmptyEntries)
+            .Select(word => word.Trim().ToUpper())
+            .ToList();
+    }
+
+    public bool IsValidGuess(string guess)
+    {
+        return validGuesses.Contains(guess.ToUpper());
+    }
+
+    public string GetRandomAnswer()
+    {
+        if (answerWords.Count == 0)
+        {
+            Debug.LogError("Answer list is empty!");
+            return "CRANE"; // fallback
+        }
+
+        int index = Random.Range(0, answerWords.Count);
+        return answerWords[index];
     }
 }
