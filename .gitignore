@@ -29,3 +29,5 @@ sysinfo.txt
 *.aab
 .DS_Store
 .plastic/
+Assets/Scenes/SampleScene.unity
+Assets/Scripts/GameManager.cs
