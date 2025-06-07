@@ -67,6 +67,9 @@ public class GameManager : MonoBehaviour
 
         // Update the closer words list
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> parent of 1d5a57e (Message box added)
+=======
 >>>>>>> parent of 1d5a57e (Message box added)
 =======
 >>>>>>> parent of 1d5a57e (Message box added)
@@ -77,10 +80,13 @@ public class GameManager : MonoBehaviour
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         // Move the boat based on feedback
         float movePercent = CalculateBoatMovement(guess, target);
         if (boatController != null)
 =======
+=======
+>>>>>>> parent of 1d5a57e (Message box added)
 =======
 >>>>>>> parent of 1d5a57e (Message box added)
         // Update keyboard colors
@@ -92,6 +98,7 @@ public class GameManager : MonoBehaviour
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         // Check for win
         if (guess == target)
         {
@@ -100,11 +107,16 @@ public class GameManager : MonoBehaviour
 =======
 =======
 >>>>>>> parent of 1d5a57e (Message box added)
+=======
+>>>>>>> parent of 1d5a57e (Message box added)
         if (playerGuess == hiddenWord)
         {
             Debug.Log("🎉 You guessed the hidden word!");
             // TODO: Trigger victory animation
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> parent of 1d5a57e (Message box added)
+=======
 >>>>>>> parent of 1d5a57e (Message box added)
 =======
 >>>>>>> parent of 1d5a57e (Message box added)
@@ -133,8 +145,11 @@ public class GameManager : MonoBehaviour
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         for (int i = 0; i < guess.Length; i++)
 =======
+=======
+>>>>>>> parent of 1d5a57e (Message box added)
 =======
 >>>>>>> parent of 1d5a57e (Message box added)
         // First pass: correct letter & position
