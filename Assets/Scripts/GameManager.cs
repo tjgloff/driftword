@@ -11,10 +11,11 @@ public class GameManager : MonoBehaviour
     public WordListManager wordListManager;
     public CloserWordsListManager closerWordsListManager;
     public KeyboardController keyboardController;
+    public MessageBoxController messageBox; // 💬 new
 
     [Header("Top Row Letter Slots")]
-    public List<TextMeshProUGUI> letterSlots; // Must be 5 elements
-    private bool[] revealedLetters = new bool[5]; // Tracks which letters have been revealed
+    public List<TextMeshProUGUI> letterSlots; // Must have 5 elements
+    private bool[] revealedLetters = new bool[5];
 
     private string hiddenWord = "";
 
@@ -28,6 +29,17 @@ public class GameManager : MonoBehaviour
 
         hiddenWord = wordListManager.GetRandomAnswer();
         Debug.Log($"[GameManager] Hidden word selected: {hiddenWord}");
+
+        // 💬 Show initial message
+        if (messageBox != null)
+        {
+            Debug.Log("[GameManager] Showing startup message.");
+            messageBox.ShowMessage("Guess the five-letter word!");
+        }
+        else
+        {
+            Debug.LogWarning("[GameManager] messageBox is NULL.");
+        }
     }
 
     public void SubmitGuess(string playerGuess)
@@ -37,34 +49,50 @@ public class GameManager : MonoBehaviour
         if (playerGuess.Length != 5)
         {
             Debug.LogWarning("Guess must be exactly 5 letters.");
+            messageBox?.ShowMessage("Enter 5 letters.");
             return;
         }
 
         if (!wordListManager.IsValidGuess(playerGuess))
         {
-            Debug.LogWarning($"'{playerGuess}' is not a valid word. Guess rejected.");
+            Debug.LogWarning($"'{playerGuess}' is not a valid word.");
+            messageBox?.ShowMessage("That's not a valid word!");
             return;
         }
 
         List<int> feedback = GenerateFeedback(playerGuess, hiddenWord);
 
-        // Reveal correct letters in guess row
+        // 💬 Optional motivational message
+        if (feedback.Any(f => f == 2))
+        {
+            messageBox?.ShowMessage("You're drifting closer!");
+        }
+        else if (feedback.Any(f => f == 1))
+        {
+            messageBox?.ShowMessage("You guessed a letter!");
+        }
+        else
+        {
+            messageBox?.ShowMessage("Keep trying!");
+        }
+
+        // Reveal letters in top row
         for (int i = 0; i < 5; i++)
         {
-            if (feedback[i] == 2 && !revealedLetters[i])
+            if (feedback[i] == 2 && !revealedLetters[i] && i < letterSlots.Count)
             {
                 revealedLetters[i] = true;
                 StartCoroutine(FlipRevealLetter(i, playerGuess[i].ToString()));
             }
         }
 
-        // Update the closer words list
+        // Add to closer words list
         if (closerWordsListManager != null)
         {
             closerWordsListManager.AddGuess(playerGuess, feedback);
         }
 
-        // Update keyboard colors
+        // Update keyboard
         if (keyboardController != null)
         {
             for (int i = 0; i < 5; i++)
@@ -73,10 +101,11 @@ public class GameManager : MonoBehaviour
             }
         }
 
+        // Win condition
         if (playerGuess == hiddenWord)
         {
             Debug.Log("🎉 You guessed the hidden word!");
-            // TODO: Trigger victory animation
+            messageBox?.ShowMessage("You reached the word!");
         }
     }
 
@@ -85,7 +114,7 @@ public class GameManager : MonoBehaviour
         List<int> result = new List<int> { 0, 0, 0, 0, 0 };
         bool[] targetUsed = new bool[5];
 
-        // First pass: correct letter & position
+        // First pass: correct positions
         for (int i = 0; i < 5; i++)
         {
             if (guess[i] == target[i])
@@ -127,7 +156,7 @@ public class GameManager : MonoBehaviour
         Vector3 startScale = tile.localScale;
         Vector3 midScale = new Vector3(1, 0, 1);
 
-        // Shrink (flip out)
+        // Flip out
         while (elapsed < flipTime)
         {
             tile.localScale = Vector3.Lerp(startScale, midScale, elapsed / flipTime);
@@ -137,9 +166,10 @@ public class GameManager : MonoBehaviour
 
         tile.localScale = midScale;
         text.text = letter;
-        if (bg != null) bg.color = closerWordsListManager.correctPositionColor;
+        if (bg != null)
+            bg.color = closerWordsListManager.correctPositionColor;
 
-        // Expand (flip in)
+        // Flip in
         elapsed = 0f;
         while (elapsed < flipTime)
         {
