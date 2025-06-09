@@ -11,11 +11,14 @@ public class GameManager : MonoBehaviour
     public WordListManager wordListManager;
     public CloserWordsListManager closerWordsListManager;
     public KeyboardController keyboardController;
-    public MessageBoxController messageBox; // 💬 new
+    public MessageBoxController messageBox;
 
     [Header("Top Row Letter Slots")]
     public List<TextMeshProUGUI> letterSlots; // Must have 5 elements
     private bool[] revealedLetters = new bool[5];
+
+    [Header("Boat")]
+    public BoatController boatController;
 
     private string hiddenWord = "";
 
@@ -30,15 +33,9 @@ public class GameManager : MonoBehaviour
         hiddenWord = wordListManager.GetRandomAnswer();
         Debug.Log($"[GameManager] Hidden word selected: {hiddenWord}");
 
-        // 💬 Show initial message
         if (messageBox != null)
         {
-            Debug.Log("[GameManager] Showing startup message.");
             messageBox.ShowMessage("Guess the five-letter word!");
-        }
-        else
-        {
-            Debug.LogWarning("[GameManager] messageBox is NULL.");
         }
     }
 
@@ -48,21 +45,19 @@ public class GameManager : MonoBehaviour
 
         if (playerGuess.Length != 5)
         {
-            Debug.LogWarning("Guess must be exactly 5 letters.");
             messageBox?.ShowMessage("Enter 5 letters.");
             return;
         }
 
         if (!wordListManager.IsValidGuess(playerGuess))
         {
-            Debug.LogWarning($"'{playerGuess}' is not a valid word.");
             messageBox?.ShowMessage("That's not a valid word!");
             return;
         }
 
         List<int> feedback = GenerateFeedback(playerGuess, hiddenWord);
 
-        // 💬 Optional motivational message
+        // Show motivational message
         if (feedback.Any(f => f == 2))
         {
             messageBox?.ShowMessage("You're drifting closer!");
@@ -76,17 +71,33 @@ public class GameManager : MonoBehaviour
             messageBox?.ShowMessage("Keep trying!");
         }
 
-        // Reveal letters in top row
+        // Reveal letters and calculate progress
+        float progressScore = 0f;
         for (int i = 0; i < 5; i++)
         {
-            if (feedback[i] == 2 && !revealedLetters[i] && i < letterSlots.Count)
+            if (feedback[i] == 2)
             {
-                revealedLetters[i] = true;
-                StartCoroutine(FlipRevealLetter(i, playerGuess[i].ToString()));
+                progressScore += 0.2f;
+
+                if (!revealedLetters[i] && i < letterSlots.Count)
+                {
+                    revealedLetters[i] = true;
+                    StartCoroutine(FlipRevealLetter(i, playerGuess[i].ToString()));
+                }
+            }
+            else if (feedback[i] == 1)
+            {
+                progressScore += 0.1f;
             }
         }
 
-        // Add to closer words list
+        // Move the boat
+        if (boatController != null)
+        {
+            boatController.MoveBoat(progressScore);
+        }
+
+        // Update closer words list
         if (closerWordsListManager != null)
         {
             closerWordsListManager.AddGuess(playerGuess, feedback);
@@ -104,7 +115,6 @@ public class GameManager : MonoBehaviour
         // Win condition
         if (playerGuess == hiddenWord)
         {
-            Debug.Log("🎉 You guessed the hidden word!");
             messageBox?.ShowMessage("You reached the word!");
         }
     }
@@ -114,7 +124,7 @@ public class GameManager : MonoBehaviour
         List<int> result = new List<int> { 0, 0, 0, 0, 0 };
         bool[] targetUsed = new bool[5];
 
-        // First pass: correct positions
+        // First pass: correct letters in correct positions
         for (int i = 0; i < 5; i++)
         {
             if (guess[i] == target[i])
@@ -124,7 +134,7 @@ public class GameManager : MonoBehaviour
             }
         }
 
-        // Second pass: correct letter, wrong position
+        // Second pass: correct letters in wrong positions
         for (int i = 0; i < 5; i++)
         {
             if (result[i] == 0)
