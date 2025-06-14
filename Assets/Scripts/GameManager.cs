@@ -1,21 +1,31 @@
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
+using TMPro;
+using System.Linq;
 
 public class GameManager : MonoBehaviour
 {
+    [Header("Managers")]
+    public WordListManager wordListManager;
     public CloserWordsListManager closerWordsListManager;
-<<<<<<< HEAD
-    public BoatController boatController;
-
-    private string hiddenWord = "CRANE"; // You can change this to any 5-letter word
-=======
     public KeyboardController keyboardController;
+    public MessageBoxController messageBox;
+    public HintButtonController hintButtonController;
 
     [Header("Top Row Letter Slots")]
-    public List<TextMeshProUGUI> letterSlots; // Must be 5 elements
-    private bool[] revealedLetters = new bool[5]; // Tracks which letters have been revealed
+    public List<TextMeshProUGUI> letterSlots; // Must have 5 elements
+    private bool[] revealedLetters = new bool[5];
+
+    [Header("Boat")]
+    public BoatController boatController;
 
     private string hiddenWord = "";
+
+    // NEW: Track which letters and positions have already been credited
+    private HashSet<char> globallyCreditedLetters = new HashSet<char>();
+    private bool[] globallyCreditedPositions = new bool[5];
 
     void Start()
     {
@@ -27,162 +37,166 @@ public class GameManager : MonoBehaviour
 
         hiddenWord = wordListManager.GetRandomAnswer();
         Debug.Log($"[GameManager] Hidden word selected: {hiddenWord}");
+
+        if (messageBox != null)
+        {
+            messageBox.ShowMessage("Guess the five-letter word!");
+        }
+
+        if (hintButtonController != null)
+        {
+            hintButtonController.ResetHints();
+        }
+
+        // Reset credit trackers
+        globallyCreditedLetters.Clear();
+        for (int i = 0; i < 5; i++) globallyCreditedPositions[i] = false;
+        for (int i = 0; i < 5; i++) revealedLetters[i] = false;
     }
->>>>>>> parent of 1d5a57e (Message box added)
 
     public void SubmitGuess(string playerGuess)
     {
-        string guess = playerGuess.ToUpper();
-        string target = hiddenWord.ToUpper();
+        playerGuess = playerGuess.ToUpper();
 
-<<<<<<< HEAD
-        // Generate feedback for each letter (0 = wrong, 1 = right letter, 2 = right place)
-        List<int> feedback = GenerateFeedback(guess, target);
-
-        // Update the Closer Words List
-=======
         if (playerGuess.Length != 5)
         {
-            Debug.LogWarning("Guess must be exactly 5 letters.");
+            messageBox?.ShowMessage("Enter 5 letters.");
             return;
         }
 
         if (!wordListManager.IsValidGuess(playerGuess))
         {
-            Debug.LogWarning($"'{playerGuess}' is not a valid word. Guess rejected.");
+            messageBox?.ShowMessage("That's not a valid word!");
             return;
         }
 
         List<int> feedback = GenerateFeedback(playerGuess, hiddenWord);
 
-        // Reveal correct letters in guess row
+        // Show motivational message
+        if (feedback.Any(f => f == 2))
+        {
+            messageBox?.ShowMessage("You're drifting closer!");
+        }
+        else if (feedback.Any(f => f == 1))
+        {
+            messageBox?.ShowMessage("You guessed a letter!");
+        }
+        else
+        {
+            messageBox?.ShowMessage("Keep trying!");
+        }
+
+        // NEW: Accurate one-time credit for each correct letter and position
+        float progressScore = 0f;
+
         for (int i = 0; i < 5; i++)
         {
-            if (feedback[i] == 2 && !revealedLetters[i])
+            char guessedLetter = playerGuess[i];
+
+            if (feedback[i] == 2)
             {
-                revealedLetters[i] = true;
-                StartCoroutine(FlipRevealLetter(i, playerGuess[i].ToString()));
+                // Position credit (only once)
+                if (!globallyCreditedPositions[i])
+                {
+                    globallyCreditedPositions[i] = true;
+                    progressScore += 0.1f;
+                }
+
+                // Letter credit (only once)
+                if (!globallyCreditedLetters.Contains(guessedLetter))
+                {
+                    globallyCreditedLetters.Add(guessedLetter);
+                    progressScore += 0.1f;
+                }
+
+                // Reveal correct-position letter
+                if (!revealedLetters[i])
+                {
+                    revealedLetters[i] = true;
+                    if (i < letterSlots.Count)
+                    {
+                        StartCoroutine(FlipRevealLetter(i, guessedLetter.ToString()));
+                    }
+                }
+            }
+            else if (feedback[i] == 1)
+            {
+                // Letter credit (only once)
+                if (!globallyCreditedLetters.Contains(guessedLetter))
+                {
+                    globallyCreditedLetters.Add(guessedLetter);
+                    progressScore += 0.1f;
+                }
             }
         }
 
-        // Update the closer words list
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
->>>>>>> parent of 1d5a57e (Message box added)
-=======
->>>>>>> parent of 1d5a57e (Message box added)
-=======
->>>>>>> parent of 1d5a57e (Message box added)
-=======
->>>>>>> parent of 1d5a57e (Message box added)
+        // Move the boat only if any new credit was earned
+        if (boatController != null && progressScore > 0f)
+        {
+            boatController.MoveBoat(progressScore);
+        }
+
+        // Update closer words list
         if (closerWordsListManager != null)
         {
-            closerWordsListManager.AddGuess(guess, feedback);
+            closerWordsListManager.AddGuess(playerGuess, feedback);
         }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-        // Move the boat based on feedback
-        float movePercent = CalculateBoatMovement(guess, target);
-        if (boatController != null)
-=======
-=======
->>>>>>> parent of 1d5a57e (Message box added)
-=======
->>>>>>> parent of 1d5a57e (Message box added)
-=======
->>>>>>> parent of 1d5a57e (Message box added)
-        // Update keyboard colors
+        // Update keyboard
         if (keyboardController != null)
->>>>>>> parent of 1d5a57e (Message box added)
         {
-            boatController.MoveBoatByPercent(movePercent);
+            for (int i = 0; i < 5; i++)
+            {
+                keyboardController.UpdateKeyColor(playerGuess[i], feedback[i]);
+            }
         }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-        // Check for win
-        if (guess == target)
-        {
-            Debug.Log("🎉 You guessed it!");
-            // TODO: Add victory animation or message
-=======
-=======
->>>>>>> parent of 1d5a57e (Message box added)
-=======
->>>>>>> parent of 1d5a57e (Message box added)
-=======
->>>>>>> parent of 1d5a57e (Message box added)
+        // Win condition
         if (playerGuess == hiddenWord)
         {
-            Debug.Log("🎉 You guessed the hidden word!");
-            // TODO: Trigger victory animation
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
->>>>>>> parent of 1d5a57e (Message box added)
-=======
->>>>>>> parent of 1d5a57e (Message box added)
-=======
->>>>>>> parent of 1d5a57e (Message box added)
-=======
->>>>>>> parent of 1d5a57e (Message box added)
+            messageBox?.ShowMessage("You reached the word!");
         }
     }
 
-    private float CalculateBoatMovement(string guess, string target)
+    public string GetHiddenWord()
     {
-        float percent = 0f;
-
-        for (int i = 0; i < guess.Length; i++)
-        {
-            if (target.Contains(guess[i]))
-                percent += 0.1f; // +10% for correct letter
-
-            if (guess[i] == target[i])
-                percent += 0.1f; // +10% more for correct position
-        }
-
-        return percent; // e.g. 0.4f = 40% movement
+        return hiddenWord;
     }
 
     private List<int> GenerateFeedback(string guess, string target)
     {
-        List<int> result = new List<int>();
+        List<int> result = new List<int> { 0, 0, 0, 0, 0 };
+        bool[] targetUsed = new bool[5];
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-        for (int i = 0; i < guess.Length; i++)
-=======
-=======
->>>>>>> parent of 1d5a57e (Message box added)
-=======
->>>>>>> parent of 1d5a57e (Message box added)
-=======
->>>>>>> parent of 1d5a57e (Message box added)
-        // First pass: correct letter & position
+        // First pass: correct letters in correct positions
         for (int i = 0; i < 5; i++)
->>>>>>> parent of 1d5a57e (Message box added)
         {
             if (guess[i] == target[i])
-                result.Add(2); // correct position
-            else if (target.Contains(guess[i]))
-                result.Add(1); // correct letter wrong position
-            else
-                result.Add(0); // incorrect letter
+            {
+                result[i] = 2;
+                targetUsed[i] = true;
+            }
+        }
+
+        // Second pass: correct letters in wrong positions
+        for (int i = 0; i < 5; i++)
+        {
+            if (result[i] == 0)
+            {
+                for (int j = 0; j < 5; j++)
+                {
+                    if (!targetUsed[j] && guess[i] == target[j])
+                    {
+                        result[i] = 1;
+                        targetUsed[j] = true;
+                        break;
+                    }
+                }
+            }
         }
 
         return result;
     }
-<<<<<<< HEAD
-=======
 
     private IEnumerator FlipRevealLetter(int index, string letter)
     {
@@ -196,7 +210,7 @@ public class GameManager : MonoBehaviour
         Vector3 startScale = tile.localScale;
         Vector3 midScale = new Vector3(1, 0, 1);
 
-        // Shrink (flip out)
+        // Flip out
         while (elapsed < flipTime)
         {
             tile.localScale = Vector3.Lerp(startScale, midScale, elapsed / flipTime);
@@ -206,9 +220,10 @@ public class GameManager : MonoBehaviour
 
         tile.localScale = midScale;
         text.text = letter;
-        if (bg != null) bg.color = closerWordsListManager.correctPositionColor;
+        if (bg != null)
+            bg.color = closerWordsListManager.correctPositionColor;
 
-        // Expand (flip in)
+        // Flip in
         elapsed = 0f;
         while (elapsed < flipTime)
         {
@@ -219,5 +234,4 @@ public class GameManager : MonoBehaviour
 
         tile.localScale = startScale;
     }
->>>>>>> parent of 1d5a57e (Message box added)
 }
