@@ -24,7 +24,7 @@ public class BoatController : MonoBehaviour
 
     public void MoveBoat(float progress)
     {
-        currentProgress = Mathf.Clamp01(progress);
+        currentProgress = Mathf.Clamp01(currentProgress + progress); // ✅ Add instead of overwrite
         targetPosition = Vector3.Lerp(startPoint.position, endPoint.position, currentProgress);
         StopAllCoroutines();
         StartCoroutine(SmoothMove());

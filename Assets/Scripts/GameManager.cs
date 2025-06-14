@@ -12,6 +12,7 @@ public class GameManager : MonoBehaviour
     public CloserWordsListManager closerWordsListManager;
     public KeyboardController keyboardController;
     public MessageBoxController messageBox;
+    public HintButtonController hintButtonController;
 
     [Header("Top Row Letter Slots")]
     public List<TextMeshProUGUI> letterSlots; // Must have 5 elements
@@ -21,6 +22,10 @@ public class GameManager : MonoBehaviour
     public BoatController boatController;
 
     private string hiddenWord = "";
+
+    // NEW: Track which letters and positions have already been credited
+    private HashSet<char> globallyCreditedLetters = new HashSet<char>();
+    private bool[] globallyCreditedPositions = new bool[5];
 
     void Start()
     {
@@ -37,6 +42,16 @@ public class GameManager : MonoBehaviour
         {
             messageBox.ShowMessage("Guess the five-letter word!");
         }
+
+        if (hintButtonController != null)
+        {
+            hintButtonController.ResetHints();
+        }
+
+        // Reset credit trackers
+        globallyCreditedLetters.Clear();
+        for (int i = 0; i < 5; i++) globallyCreditedPositions[i] = false;
+        for (int i = 0; i < 5; i++) revealedLetters[i] = false;
     }
 
     public void SubmitGuess(string playerGuess)
@@ -71,28 +86,52 @@ public class GameManager : MonoBehaviour
             messageBox?.ShowMessage("Keep trying!");
         }
 
-        // Reveal letters and calculate progress
+        // NEW: Accurate one-time credit for each correct letter and position
         float progressScore = 0f;
+
         for (int i = 0; i < 5; i++)
         {
+            char guessedLetter = playerGuess[i];
+
             if (feedback[i] == 2)
             {
-                progressScore += 0.2f;
+                // Position credit (only once)
+                if (!globallyCreditedPositions[i])
+                {
+                    globallyCreditedPositions[i] = true;
+                    progressScore += 0.1f;
+                }
 
-                if (!revealedLetters[i] && i < letterSlots.Count)
+                // Letter credit (only once)
+                if (!globallyCreditedLetters.Contains(guessedLetter))
+                {
+                    globallyCreditedLetters.Add(guessedLetter);
+                    progressScore += 0.1f;
+                }
+
+                // Reveal correct-position letter
+                if (!revealedLetters[i])
                 {
                     revealedLetters[i] = true;
-                    StartCoroutine(FlipRevealLetter(i, playerGuess[i].ToString()));
+                    if (i < letterSlots.Count)
+                    {
+                        StartCoroutine(FlipRevealLetter(i, guessedLetter.ToString()));
+                    }
                 }
             }
             else if (feedback[i] == 1)
             {
-                progressScore += 0.1f;
+                // Letter credit (only once)
+                if (!globallyCreditedLetters.Contains(guessedLetter))
+                {
+                    globallyCreditedLetters.Add(guessedLetter);
+                    progressScore += 0.1f;
+                }
             }
         }
 
-        // Move the boat
-        if (boatController != null)
+        // Move the boat only if any new credit was earned
+        if (boatController != null && progressScore > 0f)
         {
             boatController.MoveBoat(progressScore);
         }
@@ -117,6 +156,11 @@ public class GameManager : MonoBehaviour
         {
             messageBox?.ShowMessage("You reached the word!");
         }
+    }
+
+    public string GetHiddenWord()
+    {
+        return hiddenWord;
     }
 
     private List<int> GenerateFeedback(string guess, string target)
